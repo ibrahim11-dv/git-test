@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --light-gray-bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --header-gray: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent-red: #dc3545;
+            --hover-red: #bb2d3b;
+            --border-color: #dee2e6;
+            --highlight-gray: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--light-gray-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header {
+            background-color: var(--header-gray);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--hover-red);
+            border-color: var(--hover-red);
+        }
+        
+        .table {
+            margin-bottom: 0;
+            width: 100%;
+            overflow-y: auto;
+        }
+        .table tbody {
+            padding-bottom: 20px;
+        }
+        
+        .table-fixed-container {
+            height: 492px; /* Fixed height for the table container */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: var(--header-gray);
+            z-index: 10;
+        }
+        .table th {
+            background-color: var(--header-gray);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: var(--highlight-gray);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin: 0 3px;
+            transition: all 0.2s;
+        }
+        
+        .edit-btn {
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .edit-btn:hover {
+            color: #0d6efd;
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .delete-btn {
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .delete-btn:hover {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        .search-box {
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .search-box:focus {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .welcome-text {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            z-index: 1000;
+        }
+        
+        .badge-count {
+            background-color: white;
+            color: var(--accent-red);
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        
+        .page-link {
+            color: var(--accent-red);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="welcome-text" id="user-info">Welcome, Admin</h2>
+                    <p class="text-muted mb-0">User management dashboard</p>
+                </div>
+                <div>
+                    <span class="badge-count">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span id="total-records">0</span> Users
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Add Button -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control search-box" placeholder="Search users...">
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="bi bi-plus-lg me-2"></i> Add User
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-table me-2"></i> User Records</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive table-fixed-container">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th class="pe-4 text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Table content will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <!-- Pagination will be loaded dynamically -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button (Mobile) -->
+    <button type="button" class="floating-btn btn btn-primary d-md-none" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">
+                        <i class="bi bi-person-plus me-2"></i> Add New User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addForm">
+                        <div class="mb-3">
+                            <label for="addName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="addName" name="name" placeholder="Enter full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="addEmail" name="email" placeholder="Enter email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="setPassword" class="form-label">Password</label>
+                            <input type="text" class="form-control" id="setPassword" name="password" placeholder="Enter password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="submit" form="addForm" class="btn btn-primary" id="addUser">
+                        <i class="bi bi-check-lg me-1"></i> Add User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="bi bi-person-check me-2"></i> Edit User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId" name="id">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="editName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="editEmail" name="email" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="submit" form="editForm" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i> Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="mb-3">Are you sure?</h4>
+                    <p class="text-muted">
+                        You are about to delete this user record. This action cannot be undone.
+                    </p>
+                    <input type="hidden" id="deleteId">
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger px-4" id="confirmDelete">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fetch and display user info
+        fetch('/api/userInfo')
+            .then(res => {
+                if (!res.ok) {
+                    window.location.href = '/login';
+                    throw new Error('Not logged in');
+                }
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('user-info').innerHTML = 
+                    `Welcome, <span class="text-danger">${data.username}</span>!`;
+            })
+            .catch(err => console.error(err));
+
+        // Table functionality
+        let currentPage = 1;
+        const limit = 7;
+        const searchInput = document.querySelector('input[type="text"]');
+        
+        const fetchAndRender = (page = 1, searchTerm = '') => {
+            fetch(`/api/usersInfo?page=${page}&limit=${limit}&searchTerm=${encodeURIComponent(searchTerm)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Can't fetch table data");
+                    return res.json();
+                })
+                .then(data => {
+                    // Update total records
+                    document.getElementById('total-records').textContent = data.total;
+                    
+                    // Render table
+                    const tbody = document.querySelector('tbody');
+                    tbody.innerHTML = '';
+                    
+                    if (!data.users || data.users.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4">No users found.</td></tr>`;
+                        renderPagination(1, 1);
+                        return;
+                    }
+
+                    data.users.forEach(user => {
+                        const initials = user.identifiant.split(' ').map(n => n[0]).join('').toUpperCase();
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="ps-4">${user.id}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar">${initials}</div>
+                                    <div>
+                                        <div class="fw-semibold">${user.identifiant}</div>
+                                        <small class="text-muted">ID: ${user.id}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-envelope-fill text-muted me-2"></i>
+                                    <a href="mailto:${user.email}" class="text-decoration-none">${user.email}</a>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm action-btn edit-btn" data-id="${user.id}" data-bs-toggle="modal" data-bs-target="#editModal">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm action-btn delete-btn" data-id="${user.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>`;
+                        tbody.appendChild(tr);
+                    });
+
+                    currentPage = data.page;
+                    renderPagination(currentPage, data.totalPages);
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert(err.message);
+                });
+        };
+
+        // Pagination rendering
+        const renderPagination = (current, totalPages) => {
+            const searchTerm = searchInput.value.trim();
+            const pagination = document.querySelector('.pagination');
+            pagination.innerHTML = '';
+
+            // Previous button
+            const prev = document.createElement('li');
+            prev.className = `page-item ${current === 1 ? 'disabled' : ''}`;
+            prev.innerHTML = `<a class="page-link" href="#"><i class="bi bi-chevron-left"></i> Previous</a>`;
+            prev.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (current > 1) fetchAndRender(current - 1, searchTerm);
+            });
+            pagination.appendChild(prev);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${current == i ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    fetchAndRender(i, searchTerm);
+                });
+                pagination.appendChild(li);
+            }
+
+            // Next button
+            const next = document.createElement('li');
+            next.className = `page-item ${current == totalPages ? 'disabled' : ''}`;
+            next.innerHTML = `<a class="page-link" href="#">Next <i class="bi bi-chevron-right"></i></a>`;
+            next.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (current < totalPages) fetchAndRender(current + 1, searchTerm);
+            });
+            pagination.appendChild(next);
+        };
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            fetchAndRender(1, searchInput.value);
+        });
+
+        // Add user form
+        document.getElementById('addForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams(new FormData(e.target));
+            
+            fetch('/api/addUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(res.status === 409 ? 'User already exists' : 'Error adding user');
+                return res.json();
+            })
+            .then(() => {
+                e.target.reset();
+                bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();
+                fetchAndRender(currentPage, searchInput.value);
+            })
+            .catch(err => alert(err.message));
+        });
+
+        // Edit user functionality
+        const editModal = document.getElementById('editModal');
+        let userIdToEdit = null;
+
+        editModal.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            userIdToEdit = button.getAttribute('data-id');
+            
+            fetch(`/api/getUser/${userIdToEdit}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Can't fetch user data");
+                    return res.json();
+                })
+                .then(user => {
+                    document.getElementById('editId').value = user.id;
+                    document.getElementById('editName').value = user.identifiant;
+                    document.getElementById('editEmail').value = user.email;
+                })
+                .catch(err => {
+                    alert(err.message);
+                    bootstrap.Modal.getInstance(editModal).hide();
+                });
+        });
+
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams(new FormData(e.target));
+            
+            fetch(`/api/updateUser/${userIdToEdit}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(res.status === 409 ? 'Email already in use' : 'Error updating user');
+                return res.json();
+            })
+            .then(() => {
+                bootstrap.Modal.getInstance(editModal).hide();
+                fetchAndRender(currentPage, searchInput.value);
+            })
+            .catch(err => alert(err.message));
+        });
+
+        // Delete user functionality
+        const deleteModal = document.getElementById('deleteModal');
+        let userIdToDelete = null;
+
+        deleteModal.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            userIdToDelete = button.getAttribute('data-id');
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', () => {
+            fetch(`/api/deleteUser/${userIdToDelete}`, {
+                method: 'DELETE'
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Can't delete user");
+                return res.json();
+            })
+            .then(() => {
+                bootstrap.Modal.getInstance(deleteModal).hide();
+                fetchAndRender(currentPage, searchInput.value);
+            })
+            .catch(err => alert(err.message));
+        });
+
+        // Initial load
+        fetchAndRender(1);
+    });
+</script>
+</body>
+</html>
